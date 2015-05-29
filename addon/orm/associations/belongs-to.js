@@ -3,8 +3,16 @@ import Association from './association';
 
 export default Association.extend({
 
-  getForeignKeysHash: function(key, initAttrs) {
-    var foreignKey = key + '_id';
+  toString: function() {
+    return 'association:belongs-to';
+  },
+
+  getForeignKey: function(key) {
+    return `${key}_id`;
+  },
+
+  getInitialValueForForeignKey: function(key, initAttrs) {
+    var foreignKey = this.getForeignKey(key);
     var hash = {};
     hash[foreignKey] = initAttrs[foreignKey] !== undefined ? initAttrs[foreignKey] : null;
 

@@ -21,7 +21,7 @@ var Model = function(schema, type, initAttrs) {
   this.type = type;
   initAttrs = initAttrs || {};
 
-  this._discoverAssociations(initAttrs);
+  this._discoverAssociations();
   this._setupAttrs(initAttrs);
   this._setupRelationships(initAttrs);
   this._setupPlainAttributes();
@@ -114,7 +114,7 @@ Model.prototype._definePlainAttribute = function(attr) {
   Copy this model's associations and foreign keys into a registry for later reference,
   since the keys will be overwritten once the associations are set up.
 */
-Model.prototype._discoverAssociations = function(initAttrs) {
+Model.prototype._discoverAssociations = function() {
   var _this = this;
 
   var associationsMap = {};
@@ -127,13 +127,16 @@ Model.prototype._discoverAssociations = function(initAttrs) {
 
   this._associations = associationsMap;
 
-  var hash = {};
+  var foreignKeys = [];
   Object.keys(associationsMap).forEach(function(key) {
     var association = associationsMap[key];
-    hash = _.assign(hash, association.getForeignKeysHash(key, initAttrs));
+    var fk = association.getForeignKey(key);
+    if (fk) {
+      foreignKeys.push(fk);
+    }
   });
 
-  this._foreignKeysMap = hash;
+  this._foreignKeys = foreignKeys;
 };
 
 /*
@@ -149,7 +152,15 @@ Model.prototype._setupAttrs = function(initAttrs) {
   var _this = this;
   var attrs = {};
 
-  initAttrs = _.assign(initAttrs, this._foreignKeysMap);
+  var initialForeignKeysHash = {};
+  Object.keys(this._associations).forEach(function(key) {
+    var association = _this._associations[key];
+    var hash = association.getInitialValueForForeignKey(key, initAttrs);
+
+    initialForeignKeysHash = _.assign(initialForeignKeysHash, hash);
+  });
+
+  initAttrs = _.assign(initAttrs, initialForeignKeysHash);
 
   Object.keys(initAttrs)
     .filter(function(attr) {
@@ -173,10 +184,9 @@ Model.prototype._setupRelationships = function(initAttrs) {
 Model.prototype._setupPlainAttributes = function() {
   var _this = this;
   var attrs = this.attrs ? Object.keys(this.attrs) : [];
-  var foreignKeys = Object.keys(this._foreignKeysMap);
 
   var plainKeys = attrs.filter(function(attr) {
-    return foreignKeys.indexOf(attr) === -1;
+    return _this._foreignKeys.indexOf(attr) === -1;
   });
 
   plainKeys.forEach(function(attr) {
