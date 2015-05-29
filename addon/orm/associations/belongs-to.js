@@ -44,7 +44,7 @@ export default Association.extend({
           - sets the associated parent (via id)
       */
       set: function(val) {
-        _this._tempParent = null;
+        // _this._tempParent = null;
         this.attrs[foreignKey] = val;
         return this;
       }
@@ -57,12 +57,17 @@ export default Association.extend({
           - returns the associated parent
       */
       get: function() {
-        if (_this._tempParent) {
-          return _this._tempParent;
-        }
+        var foreignKeyId = model[foreignKey];
+        if (foreignKeyId) {
+          _this._tempParent = null;
+          var relatedType = _this.type ? _this.type : singularize(key);
+          return schema[relatedType].find(foreignKeyId);
 
-        var relatedType = _this.type ? _this.type : singularize(key);
-        return schema[relatedType].find(model[foreignKey]);
+        } else if (_this._tempParent) {
+          return _this._tempParent;
+        } else {
+          return null;
+        }
       },
 
       /*
@@ -78,6 +83,7 @@ export default Association.extend({
           _this._tempParent = null;
           model[foreignKey] = newModel.id;
         } else {
+          _this._tempParent = null;
           model[foreignKey] = null;
         }
       }

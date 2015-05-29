@@ -78,14 +78,6 @@ test('the child can update its relationship to a new parent via parent', functio
   assert.deepEqual(address.attrs, {user_id: null});
 });
 
-test('the child can update its relationship to null via parent_id', function(assert) {
-  address.user_id = null;
-
-  assert.equal(address.user_id, null);
-  assert.deepEqual(address.user, null);
-  assert.deepEqual(address.attrs, {user_id: null});
-});
-
 test('the child can update its relationship to null via parent', function(assert) {
   address.user = null;
 
