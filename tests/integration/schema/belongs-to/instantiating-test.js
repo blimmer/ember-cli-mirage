@@ -13,15 +13,17 @@ module('mirage:integration:schema:belongsTo instantiating with params', {
       ],
       addresses: []
     });
-    schema = new Schema(db);
 
     var User = Model.extend();
     var Address = Model.extend({
       user: Mirage.belongsTo()
     });
 
-    schema.register('user', User);
-    schema.register('address', Address);
+    schema = new Schema(db);
+    schema.registerModels({
+      user: User,
+      address: Address
+    });
 
     link = schema.user.find(1);
   }

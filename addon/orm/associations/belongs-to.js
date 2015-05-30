@@ -24,32 +24,11 @@ export default Association.extend({
     return hash;
   },
 
-  defineRelationship: function(model, key, schema, initAttrs) {
+  defineRelationship: function(model, key, schema, unsavedModels) {
     var _this = this;
     var foreignKey = key + '_id';
 
-    Object.defineProperty(model, foreignKey, {
-      /*
-        object.parent_id
-          - added by belongsTo
-          - returns the associated parent's id
-      */
-      get: function() {
-        return this.attrs[foreignKey];
-      },
-
-      /*
-        object.parent_id = (parentId)
-          - added by belongsTo
-          - sets the associated parent (via id)
-      */
-      set: function(val) {
-        // _this._tempParent = null;
-        this.attrs[foreignKey] = val;
-        return this;
-      }
-    });
-
+    // debugger;
     Object.defineProperty(model, key, {
       /*
         object.parent
@@ -90,8 +69,8 @@ export default Association.extend({
     });
 
     // If an unsaved model was passed into init, save a reference to it
-    if (initAttrs[key] && !initAttrs[key].id) {
-      this._tempParent = initAttrs[key];
+    if (unsavedModels && unsavedModels[key] && !unsavedModels[key].id) {
+      this._tempParent = unsavedModels[key];
     }
 
     /*

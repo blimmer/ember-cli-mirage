@@ -14,7 +14,7 @@ test('it can return all models', function(assert) {
   var schema = new Schema(db);
 
   var User = Model.extend();
-  schema.register('user', User);
+  schema.registerModel('user', User);
 
   var users = schema.user.all();
 
@@ -30,7 +30,7 @@ test('it returns an empty array when no models exist', function(assert) {
   var schema = new Schema(db);
 
   var User = Model.extend();
-  schema.register('user', User);
+  schema.registerModel('user', User);
 
   var users = schema.user.all();
 
@@ -48,7 +48,7 @@ module('mirage:integration:schema:read#find', {
     db.users.insert([{id: 1, name: 'Link'}, {id: 2, name: 'Zelda'}]);
     schema = new Schema(db);
 
-    schema.register('user', User);
+    schema.registerModel('user', User);
   }
 });
 
@@ -95,7 +95,7 @@ module('mirage:integration:schema:read#where', {
     ]);
     schema = new Schema(db);
 
-    schema.register('user', User);
+    schema.registerModel('user', User);
   }
 });
 
@@ -126,7 +126,7 @@ module('mirage:integration:schema:read#model', {
     ]);
     schema = new Schema(db);
     User = Model.extend();
-    schema.register('user', User);
+    schema.registerModel('user', User);
   }
 });
 

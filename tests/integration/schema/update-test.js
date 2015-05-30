@@ -13,7 +13,7 @@ module('mirage:integration:schema:update#collection', {
     var schema = new Schema(db);
 
     var User = Model.extend();
-    schema.register('user', User);
+    schema.registerModel('user', User);
 
     collection = new Collection([
       schema.user.create({name: 'Link', location: 'Hyrule', evil: false}),
@@ -65,7 +65,7 @@ module('mirage:integration:schema:update#model', {
     ]);
     schema = new Schema(db);
     User = Model.extend();
-    schema.register('user', User);
+    schema.registerModel('user', User);
   }
 });
 

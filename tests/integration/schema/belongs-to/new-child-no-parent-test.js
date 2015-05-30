@@ -18,8 +18,8 @@ module('mirage:integration:schema:belongsTo#new-child-no-parent', {
       user: Mirage.belongsTo()
     });
 
-    schema.register('user', User);
-    schema.register('address', Address);
+    schema.registerModel('user', User);
+    schema.registerModel('address', Address);
 
     link = schema.user.find(1);
     address = schema.address.new();

@@ -30,7 +30,7 @@ module('mirage:integration:schema:create', {
     schema = new Schema(db);
 
     User = Model.extend();
-    schema.register('user', User);
+    schema.registerModel('user', User);
   }
 });
 

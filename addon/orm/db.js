@@ -57,6 +57,10 @@ export default function(initialData) {
     });
   };
 
+  this.addForeignKey = function(collection, name) {
+
+  };
+
   this.all = function(collection) {
     var records = this[collection]._records;
 

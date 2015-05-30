@@ -12,7 +12,7 @@ module('mirage:integration:schema:delete#collection', {
     var schema = new Schema(db);
 
     var User = Model.extend();
-    schema.register('user', User);
+    schema.registerModel('user', User);
 
     collection = new Collection([
       schema.user.create({name: 'Link', location: 'Hyrule', evil: false}),
@@ -45,7 +45,7 @@ module('mirage:integration:schema:delete#model', {
 
     User = Model.extend();
 
-    schema.register('user', User);
+    schema.registerModel('user', User);
   }
 });
 

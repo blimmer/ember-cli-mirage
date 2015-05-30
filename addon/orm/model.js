@@ -13,18 +13,16 @@ import Association from './associations/association';
 /*
   Constructor
 */
-var Model = function(schema, type, initAttrs) {
+var Model = function(schema, type, attrs, unsavedModels) {
   if (!schema) { throw 'Mirage: A model requires a schema'; }
   if (!type) { throw 'Mirage: A model requires a type'; }
 
   this._schema = schema;
   this.type = type;
-  initAttrs = initAttrs || {};
 
   this._discoverAssociations();
-  this._setupAttrs(initAttrs);
-  this._setupRelationships(initAttrs);
-  this._setupPlainAttributes();
+  this._setupAttrs(attrs);
+  this._setupRelationships(unsavedModels);
 
   return this;
 };
@@ -118,82 +116,38 @@ Model.prototype._discoverAssociations = function() {
   var _this = this;
 
   var associationsMap = {};
-  Object.keys(Object.getPrototypeOf(this))
+  Object.keys(this.constructor)
     .forEach(function(attr) {
-      if (_this[attr] instanceof Association) {
-        associationsMap[attr] = _this[attr];
+      if (_this.constructor[attr] instanceof Association) {
+        associationsMap[attr] = _this.constructor[attr];
       }
     });
 
   this._associations = associationsMap;
-
-  var foreignKeys = [];
-  Object.keys(associationsMap).forEach(function(key) {
-    var association = associationsMap[key];
-    var fk = association.getForeignKey(key);
-    if (fk) {
-      foreignKeys.push(fk);
-    }
-  });
-
-  this._foreignKeys = foreignKeys;
 };
 
 /*
   model.attrs represents the persistable attributes, i.e. your db
-  table fields. This method sets up that hash with its
-  intiial values.
-
-  It knows about passed-in initial attrs (which could be plain attrs,
-  foreign keys, or associated models), plus any foreign keys required
-  by its associations.
+  table fields.
 */
 Model.prototype._setupAttrs = function(initAttrs) {
   var _this = this;
-  var attrs = {};
-
-  var initialForeignKeysHash = {};
-  Object.keys(this._associations).forEach(function(key) {
-    var association = _this._associations[key];
-    var hash = association.getInitialValueForForeignKey(key, initAttrs);
-
-    initialForeignKeysHash = _.assign(initialForeignKeysHash, hash);
-  });
-
-  initAttrs = _.assign(initAttrs, initialForeignKeysHash);
-
-  Object.keys(initAttrs)
-    .filter(function(attr) {
-      return !( _this[attr] instanceof Association); })
-    .forEach(function(attr) {
-      var initialVal = initAttrs[attr] !== undefined ? initAttrs[attr] : null;
-      attrs[attr] = initialVal;
-    });
-
+  var attrs = initAttrs || {};
   this.attrs = attrs;
-};
 
-Model.prototype._setupRelationships = function(initAttrs) {
-  var _this = this;
-
-  Object.keys(this._associations).forEach(function(attr) {
-    _this[attr].defineRelationship(_this, attr, _this._schema, initAttrs);
-  });
-};
-
-Model.prototype._setupPlainAttributes = function() {
-  var _this = this;
-  var attrs = this.attrs ? Object.keys(this.attrs) : [];
-
-  var plainKeys = attrs.filter(function(attr) {
-    return _this._foreignKeys.indexOf(attr) === -1;
-  });
-
-  plainKeys.forEach(function(attr) {
+  Object.keys(attrs).forEach(function(attr) {
     _this._definePlainAttribute(attr);
   });
 };
 
-Model.extend = extend;
+Model.prototype._setupRelationships = function(unsavedModels) {
+  var _this = this;
+
+  Object.keys(this._associations).forEach(function(attr) {
+    _this._associations[attr].defineRelationship(_this, attr, _this._schema, unsavedModels);
+  });
+};
+
+Model.extend = extend.bind(Model, null);
 
 export default Model;
