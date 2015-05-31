@@ -21,8 +21,10 @@ module('mirage:integration:schema:hasMany instantiating with params', {
     });
     var Address = Model.extend();
 
-    schema.registerModel('user', User);
-    schema.registerModel('address', Address);
+    schema.registerModels({
+      user: User,
+      address: Address
+    });
 
     child1 = schema.address.find(1);
     child2 = schema.address.find(2);

@@ -26,9 +26,8 @@ export default Association.extend({
 
   defineRelationship: function(model, key, schema, unsavedModels) {
     var _this = this;
-    var foreignKey = key + '_id';
+    var foreignKey = this.getForeignKey(key);
 
-    // debugger;
     Object.defineProperty(model, key, {
       /*
         object.parent
@@ -39,8 +38,8 @@ export default Association.extend({
         var foreignKeyId = model[foreignKey];
         if (foreignKeyId) {
           _this._tempParent = null;
-          var relatedType = _this.type ? _this.type : singularize(key);
-          return schema[relatedType].find(foreignKeyId);
+          var parentType = _this.type ? _this.type : singularize(key);
+          return schema[parentType].find(foreignKeyId);
 
         } else if (_this._tempParent) {
           return _this._tempParent;
@@ -79,10 +78,11 @@ export default Association.extend({
         - creates a new unsaved associated parent
     */
     model['new' + capitalize(key)] = function(attrs) {
-      var newModel = schema[key].new(attrs);
-      model[key] = newModel;
+      var parent = schema[key].new(attrs);
 
-      return newModel;
+      model[key] = parent;
+
+      return parent;
     };
 
     /*
@@ -91,10 +91,11 @@ export default Association.extend({
         - creates an associated parent, persists directly to db
     */
     model['create' + capitalize(key)] = function(attrs) {
-      var newModel = schema[key].create(attrs);
-      model[foreignKey] = newModel.id;
+      var parent = schema[key].create(attrs);
 
-      return newModel;
+      model[foreignKey] = parent.id;
+
+      return parent;
     };
   }
 

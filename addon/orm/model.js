@@ -20,7 +20,6 @@ var Model = function(schema, type, attrs, unsavedModels) {
   this._schema = schema;
   this.type = type;
 
-  this._discoverAssociations();
   this._setupAttrs(attrs);
   this._setupRelationships(unsavedModels);
 
@@ -109,24 +108,6 @@ Model.prototype._definePlainAttribute = function(attr) {
 };
 
 /*
-  Copy this model's associations and foreign keys into a registry for later reference,
-  since the keys will be overwritten once the associations are set up.
-*/
-Model.prototype._discoverAssociations = function() {
-  var _this = this;
-
-  var associationsMap = {};
-  Object.keys(this.constructor)
-    .forEach(function(attr) {
-      if (_this.constructor[attr] instanceof Association) {
-        associationsMap[attr] = _this.constructor[attr];
-      }
-    });
-
-  this._associations = associationsMap;
-};
-
-/*
   model.attrs represents the persistable attributes, i.e. your db
   table fields.
 */
@@ -143,8 +124,16 @@ Model.prototype._setupAttrs = function(initAttrs) {
 Model.prototype._setupRelationships = function(unsavedModels) {
   var _this = this;
 
-  Object.keys(this._associations).forEach(function(attr) {
-    _this._associations[attr].defineRelationship(_this, attr, _this._schema, unsavedModels);
+  var associationsMap = {};
+  Object.keys(this.constructor)
+    .forEach(function(attr) {
+      if (_this.constructor[attr] instanceof Association) {
+        associationsMap[attr] = _this.constructor[attr];
+      }
+    });
+
+  Object.keys(associationsMap).forEach(function(attr) {
+    associationsMap[attr].defineRelationship(_this, attr, _this._schema, unsavedModels);
   });
 };
 

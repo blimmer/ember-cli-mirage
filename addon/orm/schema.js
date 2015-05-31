@@ -94,7 +94,6 @@ export default function(db) {
     Object.keys(ModelClass).forEach(function(key) {
       if (ModelClass[key] instanceof Association) {
         var association = ModelClass[key];
-        // debugger;
         var hash = association.getInitialValueForForeignKey(key, attrs);
 
         initialForeignKeysHash = _.assign(initialForeignKeysHash, hash);
