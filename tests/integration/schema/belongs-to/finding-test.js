@@ -38,3 +38,11 @@ test('the relationship is wired up correctly', function(assert) {
   assert.deepEqual(address.user, link);
   assert.deepEqual(address.attrs, {id: 1, user_id: 1, name: '123 Hyrule Way'});
 });
+
+test('it errors if the record doesnt exist', function(assert) {
+  // var address = schema.address.find(1);
+
+  // assert.equal(address.user_id, 1);
+  // assert.deepEqual(address.user, link);
+  // assert.deepEqual(address.attrs, {id: 1, user_id: 1, name: '123 Hyrule Way'});
+});

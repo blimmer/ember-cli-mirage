@@ -21,14 +21,29 @@ export default function(db) {
     });
   };
 
-  this.registerModel = function(type, typeClass) {
-    this._registry[type] = typeClass;
-    var collection = pluralize(type);
+  this.registerModel = function(type, ModelClass) {
+    // Store model & fks in registry
+    this._registry[type] = this._registry[type] || {class: null, foreignKeys: []}; // we may have created this key before, if another model added fks to it
+    this._registry[type].class = ModelClass;
+    var foriegnKeysFromModel = ModelClass.getForeignKeys();
+    debugger;
+    var initialForeignKeysHash = {};
+    Object.keys(ModelClass).forEach(function(key) {
+      if (ModelClass[key] instanceof Association) {
+        var association = ModelClass[key];
+        var hash = association.getInitialValueForForeignKey(key, attrs);
 
+        initialForeignKeysHash = _.assign(initialForeignKeysHash, hash);
+      }
+    });
+
+    // Create db, if doesn't exist
+    var collection = pluralize(type);
     if (!this.db[collection]) {
-      db.createCollection(collection);
+      this.db.createCollection(collection);
     }
 
+    // Create the entity methods
     this[type] = {
       new: this.new.bind(this, type),
       create: this.create.bind(this, type),
@@ -45,38 +60,29 @@ export default function(db) {
   };
 
   this.create = function(type, attrs) {
-    var collection = pluralize(type);
-
-    var augmentedAttrs = this.db[collection].insert(attrs);
+    var collection = this._collectionForType(type);
+    var augmentedAttrs = collection.insert(attrs);
 
     return this._instantiateModel(type, augmentedAttrs);
   };
 
   this.all = function(type) {
-    var collection = pluralize(type);
-    var records = db[collection]._records;
+    var collection = this._collectionForType(type);
+    var records = collection._records;
 
     return this._hydrate(records, type);
   };
 
   this.find = function(type, ids) {
-    var collection = pluralize(type);
-    if (!db[collection]) {
-      throw "Mirage: You're trying to find model(s) of type " + type + " but this collection doesn't exist in the database.";
-    }
-
-    var records = db[collection].find(ids);
+    var collection = this._collectionForType(type);
+    var records = collection.find(ids);
 
     return this._hydrate(records, type);
   };
 
   this.where = function(type, query) {
-    var collection = pluralize(type);
-    if (!db[collection]) {
-      throw "Mirage: You're trying to find model(s) of type " + type + " but this collection doesn't exist in the database.";
-    }
-
-    var records = db[collection].where(query);
+    var collection = this._collectionForType(type);
+    var records = collection.where(query);
 
     return this._hydrate(records, type);
   };
@@ -84,6 +90,15 @@ export default function(db) {
   /*
     Private methods
   */
+  this._collectionForType = function(type) {
+    var collection = pluralize(type);
+    if (!this.db[collection]) {
+      throw "Mirage: You're trying to find model(s) of type " + type + " but this collection doesn't exist in the database.";
+    }
+
+    return this.db[collection];
+  };
+
   this._instantiateModel = function(type, attrs) {
     attrs = attrs || {};
     var initAttrs = {};

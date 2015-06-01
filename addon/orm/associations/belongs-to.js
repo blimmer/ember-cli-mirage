@@ -7,8 +7,8 @@ export default Association.extend({
     return 'association:belongs-to';
   },
 
-  getForeignKey: function(key) {
-    return `${key}_id`;
+  getForeignKey: function() {
+    return `${this.type}_id`;
   },
 
   getInitialValueForForeignKey: function(key, initAttrs) {
@@ -38,8 +38,7 @@ export default Association.extend({
         var foreignKeyId = model[foreignKey];
         if (foreignKeyId) {
           _this._tempParent = null;
-          var parentType = _this.type ? _this.type : singularize(key);
-          return schema[parentType].find(foreignKeyId);
+          return schema[_this.type].find(foreignKeyId);
 
         } else if (_this._tempParent) {
           return _this._tempParent;
