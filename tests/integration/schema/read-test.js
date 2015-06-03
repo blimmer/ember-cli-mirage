@@ -74,11 +74,10 @@ test('it can find multiple models by ids', function(assert) {
   assert.deepEqual(users[1].attrs, {id: 2, name: 'Zelda'});
 });
 
-test('it returns an empty collection if no models are found for an array of ids', function(assert) {
-  var users = schema.user.find([5, 6]);
-
-  assert.ok(users instanceof Collection, 'it returns a collection');
-  assert.equal(users.length, 0);
+test('it errors if incorrect number of models are found for an array of ids', function(assert) {
+  assert.throws(function() {
+    schema.user.find([1, 6]);
+  }, /Couldn't find all users/);
 });
 
 

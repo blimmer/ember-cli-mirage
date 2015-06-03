@@ -85,6 +85,12 @@ export default function(db) {
     var collection = this._collectionForType(type);
     var records = collection.find(ids);
 
+    if (Ember.isArray(ids)) {
+      if (records.length !== ids.length) {
+        throw "Couldn't find all " + pluralize(type) + " with 'ids': (" + ids.join(',') + ") (found " + records.length + " results, but was looking for " + ids.length + ")";
+      }
+    }
+
     return this._hydrate(records, type);
   };
 

@@ -37,11 +37,11 @@ test('the child accepts a saved parents id', function(assert) {
   assert.deepEqual(address.attrs, {user_id: 1});
 });
 
-// test('the child errors if the parent id doesnt exist', function(assert) {
-//   assert.throws(function() {
-//     schema.address.new({user_id: 2});
-//   });
-// });
+test('the child errors if the parent id doesnt exist', function(assert) {
+  assert.throws(function() {
+    schema.address.new({user_id: 2});
+  }, /Couldn't find user/);
+});
 
 test('the child accepts a null parent id', function(assert) {
   var address = schema.address.new({user_id: null});

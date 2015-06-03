@@ -57,9 +57,12 @@ export default Association.extend({
           - added by belongsTo
           - sets the associated parent (via id)
       */
-      set: function(val) {
-        // _this._tempParent = null;
-        this.attrs[foreignKey] = val;
+      set: function(id) {
+        if (id && !schema[_this.referent].find(id)) {
+          throw "Couldn't find " + _this.referent + " with id = " + id;
+        }
+
+        this.attrs[foreignKey] = id;
         return this;
       }
     });
