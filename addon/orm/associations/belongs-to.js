@@ -16,25 +16,8 @@ export default Association.extend({
     return [this.possessor, `${this.referent}_id`];
   },
 
-  getForeignKeyForPossessor: function() {
-    return `${this.referent}_id`;
-  },
-
   getForeignKey: function() {
     return `${this.referent}_id`;
-  },
-
-  getInitialValueForForeignKey: function(key, initAttrs) {
-    var foreignKey = this.getForeignKey();
-    var hash = {};
-    hash[foreignKey] = initAttrs[foreignKey] !== undefined ? initAttrs[foreignKey] : null;
-
-    // Set foreign key if model was passed in
-    if (initAttrs[key] && initAttrs[key].id) {
-      hash[foreignKey] = initAttrs[key].id;
-    }
-
-    return hash;
   },
 
   addMethodsToModel: function(model, key, schema) {

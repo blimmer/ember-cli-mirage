@@ -123,43 +123,6 @@ export default function(db) {
     var fks = this._foreignKeysFor(type);
 
     return new ModelClass(this, type, attrs, fks);
-    // attrs = attrs || {};
-    // var initAttrs = {};
-    // debugger;
-    // // Get initAttrs
-    // var initialForeignKeysHash = {};
-    // Object.keys(ModelClass).forEach(function(key) {
-    //   if (ModelClass[key] instanceof Association) {
-    //     var association = ModelClass[key];
-    //     var hash = association.getInitialValueForForeignKey(key, attrs);
-
-    //     initialForeignKeysHash = _.assign(initialForeignKeysHash, hash);
-    //   }
-    // });
-
-    // var intermediate = _.assign(attrs, initialForeignKeysHash);
-
-    // Object.keys(intermediate)
-    //   .filter(function(attr) {
-    //     return !(ModelClass[attr] instanceof Association); })
-    //   .forEach(function(attr) {
-    //     var initialVal = intermediate[attr] !== undefined ? intermediate[attr] : null;
-    //     initAttrs[attr] = initialVal;
-    //   });
-
-    // // Get any unsaved models from attrs
-    // var unsavedModels = {};
-    // Object.keys(attrs).forEach(function(attr) {
-    //   if (attrs[attr] instanceof Model) {
-    //     var model = attrs[attr];
-    //     if (!model.id) {
-    //       unsavedModels[attr] = model;
-    //     }
-    //   }
-    // });
-
-
-    // return new ModelClass(this, type, initAttrs, unsavedModels);
   };
 
   this._modelFor = function(type) {
