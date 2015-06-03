@@ -1,18 +1,31 @@
-import { singularize, capitalize } from 'ember-cli-mirage/utils/inflector';
+import { capitalize } from 'ember-cli-mirage/utils/inflector';
 import Association from './association';
 
 export default Association.extend({
 
-  toString: function() {
-    return 'association:belongs-to';
+  // The model type that holds/owns this association
+  possessor: '',
+
+  // The model type this association refers to
+  referent: '',
+
+  /*
+    The belongsTo association adds a fk to the possessor of the association
+  */
+  getForeignKeyArray: function() {
+    return [this.possessor, `${this.referent}_id`];
+  },
+
+  getForeignKeyForPossessor: function() {
+    return `${this.referent}_id`;
   },
 
   getForeignKey: function() {
-    return `${this.type}_id`;
+    return `${this.referent}_id`;
   },
 
   getInitialValueForForeignKey: function(key, initAttrs) {
-    var foreignKey = this.getForeignKey(key);
+    var foreignKey = this.getForeignKey();
     var hash = {};
     hash[foreignKey] = initAttrs[foreignKey] !== undefined ? initAttrs[foreignKey] : null;
 
@@ -24,9 +37,32 @@ export default Association.extend({
     return hash;
   },
 
-  defineRelationship: function(model, key, schema, unsavedModels) {
+  addMethodsToModel: function(model, key, schema) {
     var _this = this;
-    var foreignKey = this.getForeignKey(key);
+    var foreignKey = this.getForeignKey();
+    model.associationKeys = model.associationKeys.concat([key, foreignKey]);
+
+    Object.defineProperty(model, this.getForeignKey(), {
+      /*
+        object.parent_id
+          - added by belongsTo
+          - returns the associated parent's id
+      */
+      get: function() {
+        return this.attrs[foreignKey];
+      },
+
+      /*
+        object.parent_id = (parentId)
+          - added by belongsTo
+          - sets the associated parent (via id)
+      */
+      set: function(val) {
+        // _this._tempParent = null;
+        this.attrs[foreignKey] = val;
+        return this;
+      }
+    });
 
     Object.defineProperty(model, key, {
       /*
@@ -35,10 +71,10 @@ export default Association.extend({
           - returns the associated parent
       */
       get: function() {
-        var foreignKeyId = model[foreignKey];
+        var foreignKeyId = this[foreignKey];
         if (foreignKeyId) {
           _this._tempParent = null;
-          return schema[_this.type].find(foreignKeyId);
+          return schema[_this.referent].find(foreignKeyId);
 
         } else if (_this._tempParent) {
           return _this._tempParent;
@@ -54,22 +90,17 @@ export default Association.extend({
       */
       set: function(newModel) {
         if (newModel && newModel.isNew()) {
-          model[foreignKey] = null;
+          this[foreignKey] = null;
           _this._tempParent = newModel;
         } else if (newModel) {
           _this._tempParent = null;
-          model[foreignKey] = newModel.id;
+          this[foreignKey] = newModel.id;
         } else {
           _this._tempParent = null;
-          model[foreignKey] = null;
+          this[foreignKey] = null;
         }
       }
     });
-
-    // If an unsaved model was passed into init, save a reference to it
-    if (unsavedModels && unsavedModels[key] && !unsavedModels[key].id) {
-      this._tempParent = unsavedModels[key];
-    }
 
     /*
       object.newParent
@@ -79,7 +110,7 @@ export default Association.extend({
     model['new' + capitalize(key)] = function(attrs) {
       var parent = schema[key].new(attrs);
 
-      model[key] = parent;
+      this[key] = parent;
 
       return parent;
     };
@@ -92,7 +123,7 @@ export default Association.extend({
     model['create' + capitalize(key)] = function(attrs) {
       var parent = schema[key].create(attrs);
 
-      model[foreignKey] = parent.id;
+      this[foreignKey] = parent.id;
 
       return parent;
     };

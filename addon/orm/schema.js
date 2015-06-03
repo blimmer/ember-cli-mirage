@@ -1,8 +1,7 @@
 import Ember from 'ember';
-import { pluralize } from '../utils/inflector';
+import { singularize, pluralize } from '../utils/inflector';
 import Collection from './collection';
 import Association from './associations/association';
-import Model from './model';
 
 export default function(db) {
 
@@ -22,20 +21,29 @@ export default function(db) {
   };
 
   this.registerModel = function(type, ModelClass) {
+    var _this = this;
+
     // Store model & fks in registry
     this._registry[type] = this._registry[type] || {class: null, foreignKeys: []}; // we may have created this key before, if another model added fks to it
     this._registry[type].class = ModelClass;
-    var foriegnKeysFromModel = ModelClass.getForeignKeys();
-    debugger;
-    var initialForeignKeysHash = {};
+
     Object.keys(ModelClass).forEach(function(key) {
       if (ModelClass[key] instanceof Association) {
         var association = ModelClass[key];
-        var hash = association.getInitialValueForForeignKey(key, attrs);
+        var associatedType = association.type || singularize(key);
+        association.possessor = type;
+        association.referent = associatedType;
 
-        initialForeignKeysHash = _.assign(initialForeignKeysHash, hash);
+        // Update the registry with this association's foreign keys
+        var result = association.getForeignKeyArray();
+        var fkHolder = result[0];
+        var fk = result[1];
+        _this._addForeignKeyToRegistry(fkHolder, fk);
       }
     });
+
+    // Add association methods (until we can figure out how to add them as static class methods upon definition)
+    ModelClass.prototype.addAssociationMethods(this);
 
     // Create db, if doesn't exist
     var collection = pluralize(type);
@@ -99,45 +107,61 @@ export default function(db) {
     return this.db[collection];
   };
 
+  this._addForeignKeyToRegistry = function(type, fk) {
+    this._registry[type] = this._registry[type] || {class: null, foreignKeys: []};
+    this._registry[type].foreignKeys.push(fk);
+  };
+
   this._instantiateModel = function(type, attrs) {
-    attrs = attrs || {};
-    var initAttrs = {};
-    var ModelClass = this._registry[type];
+    var ModelClass = this._modelFor(type);
+    var fks = this._foreignKeysFor(type);
 
-    // Get initAttrs
-    var initialForeignKeysHash = {};
-    Object.keys(ModelClass).forEach(function(key) {
-      if (ModelClass[key] instanceof Association) {
-        var association = ModelClass[key];
-        var hash = association.getInitialValueForForeignKey(key, attrs);
+    return new ModelClass(this, type, attrs, fks);
+    // attrs = attrs || {};
+    // var initAttrs = {};
+    // debugger;
+    // // Get initAttrs
+    // var initialForeignKeysHash = {};
+    // Object.keys(ModelClass).forEach(function(key) {
+    //   if (ModelClass[key] instanceof Association) {
+    //     var association = ModelClass[key];
+    //     var hash = association.getInitialValueForForeignKey(key, attrs);
 
-        initialForeignKeysHash = _.assign(initialForeignKeysHash, hash);
-      }
-    });
+    //     initialForeignKeysHash = _.assign(initialForeignKeysHash, hash);
+    //   }
+    // });
 
-    var intermediate = _.assign(attrs, initialForeignKeysHash);
+    // var intermediate = _.assign(attrs, initialForeignKeysHash);
 
-    Object.keys(intermediate)
-      .filter(function(attr) {
-        return !(ModelClass[attr] instanceof Association); })
-      .forEach(function(attr) {
-        var initialVal = intermediate[attr] !== undefined ? intermediate[attr] : null;
-        initAttrs[attr] = initialVal;
-      });
+    // Object.keys(intermediate)
+    //   .filter(function(attr) {
+    //     return !(ModelClass[attr] instanceof Association); })
+    //   .forEach(function(attr) {
+    //     var initialVal = intermediate[attr] !== undefined ? intermediate[attr] : null;
+    //     initAttrs[attr] = initialVal;
+    //   });
 
-    // Get any unsaved models from attrs
-    var unsavedModels = {};
-    Object.keys(attrs).forEach(function(attr) {
-      if (attrs[attr] instanceof Model) {
-        var model = attrs[attr];
-        if (!model.id) {
-          unsavedModels[attr] = model;
-        }
-      }
-    });
+    // // Get any unsaved models from attrs
+    // var unsavedModels = {};
+    // Object.keys(attrs).forEach(function(attr) {
+    //   if (attrs[attr] instanceof Model) {
+    //     var model = attrs[attr];
+    //     if (!model.id) {
+    //       unsavedModels[attr] = model;
+    //     }
+    //   }
+    // });
 
 
-    return new ModelClass(this, type, initAttrs, unsavedModels);
+    // return new ModelClass(this, type, initAttrs, unsavedModels);
+  };
+
+  this._modelFor = function(type) {
+    return this._registry[type].class;
+  };
+
+  this._foreignKeysFor = function(type) {
+    return this._registry[type].foreignKeys;
   };
 
   /*

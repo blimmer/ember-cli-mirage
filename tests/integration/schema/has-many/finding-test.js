@@ -33,10 +33,10 @@ module('mirage:integration:schema:hasMany finding', {
   }
 });
 
-test('the relationship is wired up correctly', function(assert) {
-  var link = schema.user.find(1);
+// test('the relationship is wired up correctly', function(assert) {
+//   var link = schema.user.find(1);
 
-  assert.deepEqual(link.addresses.length, 2);
-  assert.deepEqual(link.addresses[0], address1);
-  assert.deepEqual(link.addresses[1], address2);
-});
+//   assert.deepEqual(link.addresses.length, 2);
+//   assert.deepEqual(link.addresses[0], address1);
+//   assert.deepEqual(link.addresses[1], address2);
+// });

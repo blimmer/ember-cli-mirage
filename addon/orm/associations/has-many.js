@@ -1,4 +1,4 @@
-import { singularize, capitalize } from 'ember-cli-mirage/utils/inflector';
+import { singularize } from 'ember-cli-mirage/utils/inflector';
 import Association from './association';
 
 export default Association.extend({
