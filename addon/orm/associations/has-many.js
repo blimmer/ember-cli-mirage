@@ -1,102 +1,139 @@
-import { singularize } from 'ember-cli-mirage/utils/inflector';
+import { capitalize } from 'ember-cli-mirage/utils/inflector';
 import Association from './association';
 
 export default Association.extend({
 
-  toString: function() {
-    return 'association:has-many';
+  // The model type that holds/owns this association
+  possessor: '',
+
+  // The model type this association refers to
+  referent: '',
+
+  /*
+    The belongsTo association adds a fk to the possessor of the association
+  */
+  getForeignKeyArray: function() {
+    return [this.referent, `${this.possessor}_id`];
   },
 
-  getForeignKey: function(key) {
-    return `${key}_id`;
+  getForeignKey: function() {
+    return `${this.possessor}_id`;
   },
 
-  getInitialValueForForeignKey: function(key, initAttrs) {
-    // var foreignKey = this.getForeignKey(key);
-    // var hash = {};
-    // hash[foreignKey] = initAttrs[foreignKey] !== undefined ? initAttrs[foreignKey] : null;
+  addMethodsToModel: function(model, key, schema) {
+    var association = this;
+    var foreignKey = this.getForeignKey();
+    var relationshipIdsKey = association.referent + '_ids';
 
-    // // Set foreign key if model was passed in
-    // if (initAttrs[key] && initAttrs[key].id) {
-    //   hash[foreignKey] = initAttrs[key].id;
-    // }
+    model.associationKeys = model.associationKeys.concat([key, relationshipIdsKey]);
 
-    // return hash;
-  },
-
-  defineRelationship: function(model, key, schema, unsavedModels) {
-    var _this = this;
-    var foreignKey = this.getForeignKey(model.type);
-
-    Object.defineProperty(model, key, {
-      /*
-        object.parent
-          - added by belongsTo
-          - returns the associated parent
-      */
+    Object.defineProperty(model, relationshipIdsKey, {
+    //   /*
+    //     object.children_ids
+    //       - returns an array of the associated children's ids
+    //   */
       get: function() {
-        var foreignKeyId = model.id;
-        if (foreignKeyId) {
-          var childType = singularize(key);
-          var query = {};
-          query[foreignKey] = foreignKeyId;
-
-          return schema[childType].where(query);
-
-        } else if (_this._tempParent) {
-          return _this._tempParent;
-
+        if (this.isNew()) {
+          return association._tempChildren.map(function(child) {return child.id;});
         } else {
-          return null;
+
         }
+        // debugger;
+
+        // return this[key].map(function(child) { return child.id; });
+        // debugger;
+    //     return this.attrs[foreignKey];
       },
 
       /*
-        object.parent = (parentModel)
-          - added by belongsTo
-          - sets the associated parent (via model)
+        object.children_ids = ([childrenIds...])
+          - sets the associated parent (via id)
       */
-      // set: function(newModel) {
-      //   if (newModel && newModel.isNew()) {
-      //     model[foreignKey] = null;
-      //     _this._tempParent = newModel;
-      //   } else if (newModel) {
-      //     _this._tempParent = null;
-      //     model[foreignKey] = newModel.id;
-      //   } else {
-      //     _this._tempParent = null;
-      //     model[foreignKey] = null;
-      //   }
-      // }
+      set: function(ids) {
+        if (this.isNew()) {
+          association._tempChildren = schema[association.referent].find(ids);
+
+        } else {
+          // var col = schema[association.referent].find(ids);
+          // col.update(foreignKey, this.id);
+        }
+        // debugger;
+        return this;
+        // if (id && !schema[_this.referent].find(id)) {
+        //   throw "Couldn't find " + _this.referent + " with id = " + id;
+        // }
+
+        // this.attrs[foreignKey] = id;
+        // return this;
+      }
     });
 
-    // // If an unsaved model was passed into init, save a reference to it
-    // if (unsavedModels && unsavedModels[key] && !unsavedModels[key].id) {
-    //   this._tempParent = unsavedModels[key];
-    // }
+    Object.defineProperty(model, key, {
+      /*
+        object.children
+          - returns an array of associated children
+      */
+      get: function() {
+        if (this.isNew()) {
+          return association._tempChildren;
+
+        } else {
+          var query = {};
+          query[foreignKey] = this.id;
+
+          return schema[association.referent].where(query);
+        }
+
+        // var foreignKeyId = this[foreignKey];
+        // if (foreignKeyId) {
+        //   _this._tempParent = null;
+        //   return schema[_this.referent].find(foreignKeyId);
+
+        // } else if (_this._tempParent) {
+        //   return _this._tempParent;
+        // } else {
+        //   return null;
+        // }
+      },
+
+    //   /*
+    //     object.parent = (parentModel)
+    //       - sets the associated parent (via model)
+    //   */
+    //   set: function(newModel) {
+    //     if (newModel && newModel.isNew()) {
+    //       this[foreignKey] = null;
+    //       _this._tempParent = newModel;
+    //     } else if (newModel) {
+    //       _this._tempParent = null;
+    //       this[foreignKey] = newModel.id;
+    //     } else {
+    //       _this._tempParent = null;
+    //       this[foreignKey] = null;
+    //     }
+    //   }
+    });
 
     // /*
     //   object.newParent
-    //     - added by belongsTo
     //     - creates a new unsaved associated parent
     // */
     // model['new' + capitalize(key)] = function(attrs) {
     //   var parent = schema[key].new(attrs);
 
-    //   model[key] = parent;
+    //   this[key] = parent;
 
     //   return parent;
     // };
 
     // /*
     //   object.createParent
-    //     - added by belongsTo
     //     - creates an associated parent, persists directly to db
     // */
     // model['create' + capitalize(key)] = function(attrs) {
     //   var parent = schema[key].create(attrs);
 
-    //   model[foreignKey] = parent.id;
+    //   this[foreignKey] = parent.id;
 
     //   return parent;
     // };

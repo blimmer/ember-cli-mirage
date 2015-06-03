@@ -31,9 +31,23 @@ module('mirage:integration:schema:hasMany instantiating with params', {
   }
 });
 
-// test('the parent accepts an array of saved children ids', function(assert) {
-//   var user = schema.user.new({address_ids: [1, 2]});
+test('the parent accepts an array of saved children ids', function(assert) {
+  var user = schema.user.new({address_ids: [1, 2]});
 
-//   assert.equal(user.addresses, [child1, child2]);
-//   assert.equal(user.address_ids, [1, 2]);
-// });
+  assert.equal(user.addresses.length, 2);
+  assert.deepEqual(user.addresses[0], child1);
+  assert.deepEqual(user.addresses[1], child2);
+  assert.deepEqual(user.address_ids, [1, 2]);
+});
+
+test('the parent errors if one of the child ids doesnt exist', function(assert) {
+  assert.throws(function() {
+    schema.user.new({address_ids: [1, 9]});
+  }, /Couldn't find/);
+});
+
+test('the parent accepts an empty child_ids array', function(assert) {
+  var user = schema.user.new({address_ids: []});
+
+  assert.equal(user.addresses.length, 0);
+});

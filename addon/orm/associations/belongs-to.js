@@ -28,7 +28,6 @@ export default Association.extend({
     Object.defineProperty(model, this.getForeignKey(), {
       /*
         object.parent_id
-          - added by belongsTo
           - returns the associated parent's id
       */
       get: function() {
@@ -37,7 +36,6 @@ export default Association.extend({
 
       /*
         object.parent_id = (parentId)
-          - added by belongsTo
           - sets the associated parent (via id)
       */
       set: function(id) {
@@ -53,7 +51,6 @@ export default Association.extend({
     Object.defineProperty(model, key, {
       /*
         object.parent
-          - added by belongsTo
           - returns the associated parent
       */
       get: function() {
@@ -71,7 +68,6 @@ export default Association.extend({
 
       /*
         object.parent = (parentModel)
-          - added by belongsTo
           - sets the associated parent (via model)
       */
       set: function(newModel) {
@@ -90,7 +86,6 @@ export default Association.extend({
 
     /*
       object.newParent
-        - added by belongsTo
         - creates a new unsaved associated parent
     */
     model['new' + capitalize(key)] = function(attrs) {
@@ -103,7 +98,6 @@ export default Association.extend({
 
     /*
       object.createParent
-        - added by belongsTo
         - creates an associated parent, persists directly to db
     */
     model['create' + capitalize(key)] = function(attrs) {

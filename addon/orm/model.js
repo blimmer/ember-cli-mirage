@@ -123,11 +123,12 @@ Model.prototype._setupAttrs = function(attrs) {
     hash[fk] = attrs[fk] || null;
   });
 
+  // debugger;
   this.attrs = hash;
 
-  // define plain getter/setters for non-fks
+  // define plain getter/setters for non-fks/non-association keys
   Object.keys(attrs).forEach(function(attr) {
-    if (_this.fks.indexOf(attr) === -1) {
+    if ((_this.fks.indexOf(attr) === -1) && (_this.associationKeys.indexOf(attr) === -1)) {
       _this._definePlainAttribute(attr);
     }
   });
